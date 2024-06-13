@@ -4,6 +4,7 @@ from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 from langchain_community.retrievers import ArxivRetriever
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
+from langchain_core.pydantic_v1 import BaseModel, Field
 
 model = Ollama(model = 'qwen2')
 
@@ -39,10 +40,13 @@ prompt = ChatPromptTemplate.from_messages(
     ]
 )
 
+class AgentInputs(BaseModel):
+    input: str
+
 agent = (
     {'context': RunnablePassthrough() | retriever | format_docs,
      'question': RunnablePassthrough()}
     | prompt
     | model
     | StrOutputParser()
-    )
+    ).with_types(input_type = AgentInputs)
